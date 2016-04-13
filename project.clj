@@ -5,7 +5,7 @@
             :distribution :repo}
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [clj-time "0.9.0"] ; required due to bug in lein-ring
-                 [metosin/schema-tools "0.7.0"]
+                 [metosin/schema-tools "0.9.0"]
                  [com.rpl/specter "0.9.2"]
                  [org.clojure/core.async "0.2.374"]
                  [clj-http "2.0.1"]
@@ -31,7 +31,8 @@
 
                  ;; Docs
                  [markdown-clj "0.9.86"]
-                 [hiccup "1.0.5"]]
+                 [hiccup "1.0.5"]
+                 [metosin/schema-viz "0.1.1"]]
 
   :resource-paths ["resources" "doc"]
   :main ctia.main

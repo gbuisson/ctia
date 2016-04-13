@@ -28,7 +28,8 @@
             [schema.core :as s]
             [ctia.schemas.relationships :as rel]
             [ctia.http.middleware.auth :as auth]
-            [ctia.http.routes.documentation :refer [documentation-routes]]))
+            [ctia.http.routes.documentation :refer [schema-viz-routes
+                                                    documentation-routes]]))
 
 (def JudgementSort
   "A sort ordering"
@@ -95,6 +96,7 @@
                     :tags [{:name "threat", :description "Threat Intelligence"}]}}}
 
   documentation-routes
+  schema-viz-routes
 
   (context "/ctia" []
     (context "/version" []

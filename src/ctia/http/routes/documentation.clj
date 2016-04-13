@@ -7,7 +7,8 @@
    [hiccup.page :as page]
    [ring.util.mime-type :refer [ext-mime-type]]
    [clojure.java.io :as io]
-   [clojure.core.memoize :as memo]))
+   [clojure.core.memoize :as memo]
+   [schema-viz.core :as svc]))
 
 ;; set request cache ttl
 (def cache-ttl-ms (* 1000 5))
@@ -85,6 +86,26 @@
   (memo/ttl
    #(render-request %)
    :ttl/threshold cache-ttl-ms))
+
+
+(def schema-ns
+  {:actor 'ctia.schemas.actor
+   :coa 'ctia.schemas.coa
+   :judgement 'ctia.schemas.judgement
+   :campaign 'ctia.schemas.campaign})
+
+(defn render-schema-viz [path]
+  (let [file (str "/tmp/" path ".png")]
+    (svc/save-schemas file {:ns ((keyword path) schema-ns)})
+    {:status 200
+     :headers {"Content-Type" "image/png"}
+     :body (io/file file)}))
+
+(defroutes schema-viz-routes
+  (context "/schemas" []
+    (GET "/:schema" [schema]
+      :no-doc true
+      (render-schema-viz schema))))
 
 (defroutes documentation-routes
   (context "/doc" []
