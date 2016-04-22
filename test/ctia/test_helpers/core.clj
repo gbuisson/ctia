@@ -70,6 +70,11 @@
   (with-properties ["ctia.store.type" "memory"]
     (f)))
 
+(defn fixture-properties:redis-store [f]
+  ;; May be overridden with ENV variables
+  (with-properties ["ctia.store.redis.enabled" true]
+    (f)))
+
 (defn available-port []
   (with-open [sock (ServerSocket. 0)]
     (.getLocalPort sock)))

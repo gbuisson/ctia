@@ -85,3 +85,10 @@
                                       (when (fn? shutdown-fn)
                                         (shutdown-fn)))))
       end-chan)))
+
+(s/defn drain :- [s/Any]
+  "Extract elements from a channel into a lazy-seq.
+   Reading the seq reads from the channel."
+  [c :- Channel]
+  (if-let [x (a/poll! c)]
+    (cons x (lazy-seq (drain c)))))

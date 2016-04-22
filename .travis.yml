@@ -10,9 +10,6 @@ jdk:
     - openjdk7
     - oraclejdk7
     - oraclejdk8
-# branches:
-#     only:
-#         - master
 
 before_install:
     - curl -O https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.7.5.deb && sudo dpkg -i --force-confnew elasticsearch-1.7.5.deb && sudo service elasticsearch restart
@@ -21,6 +18,7 @@ before_script:
     # Wait ES
     - until curl http://localhost:9200/; do sleep 1; done
     - until redis-cli ping; do sleep 1; done
+    - redis-cli info
 services:
     - elasticsearch
     - redis-server
