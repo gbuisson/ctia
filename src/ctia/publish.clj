@@ -8,7 +8,8 @@
 (s/defn init!
   "Initializes publishing. Right now, this means Redis."
   [e :- la/EventChannel]
+
   (when (redis/enabled?)
-    (sub/init!)
-    (la/register-listener e redis/publish-fn (constantly true) nil)))
+    (do (sub/init!)
+        (la/register-listener e redis/publish-fn (constantly true) nil))))
 
