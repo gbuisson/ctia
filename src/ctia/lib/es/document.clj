@@ -1,11 +1,12 @@
 (ns ctia.lib.es.document
-  (:require
-   [ctia.lib.pagination :as pagination]
-   [ctia.lib.es.query :refer [filter-map->terms-query]]
-   [clojurewerkz.elastisch.native.document :as native-document]
-   [clojurewerkz.elastisch.rest.document :as rest-document]
-   [clojurewerkz.elastisch.native.response :as native-response]
-   [clojurewerkz.elastisch.rest.response :as rest-response]))
+  (:require [clojurewerkz.elastisch.native
+             [document :as native-document]
+             [response :as native-response]]
+            [clojurewerkz.elastisch.rest
+             [document :as rest-document]
+             [response :as rest-response]]
+            [ctia.lib.es.query :refer [filter-map->terms-query]]
+            [ctia.lib.pagination :as pagination]))
 
 (def default-limit 1000)
 

@@ -1,31 +1,32 @@
 (ns ctia.stores.es.store
-  (:require
-   [schema.core :as s]
-   [ctia.properties :refer [properties]]
-   [ctia.stores.es.mapping :refer [store-mappings]]
-   [ctia.lib.es.index :refer [ESConnState connect] :as es-index]
-   [ctia.stores.es.judgement :as ju]
-   [ctia.stores.es.feedback  :as fe]
-   [ctia.stores.es.indicator :as in]
-   [ctia.stores.es.ttp :as ttp]
-   [ctia.stores.es.actor :as ac]
-   [ctia.stores.es.campaign :as ca]
-   [ctia.stores.es.coa :as coa]
-   [ctia.stores.es.incident :as inc]
-   [ctia.stores.es.exploit-target :as et]
-   [ctia.stores.es.sighting :as sig]
-   [ctia.stores.es.identity :as id]
-   [ctia.store :refer [IActorStore
-                       IJudgementStore
-                       IIndicatorStore
-                       IExploitTargetStore
-                       IFeedbackStore
-                       ITTPStore
-                       ICampaignStore
-                       ICOAStore
-                       ISightingStore
-                       IIncidentStore
-                       IIdentityStore]]))
+  (:require [ctia.lib.es.index :as es-index :refer [connect ESConnState]]
+            [ctia.stores.es
+             [actor :as ac]
+             [campaign :as ca]
+             [coa :as coa]
+             [exploit-target :as et]
+             [feedback :as fe]
+             [identity :as id]
+             [incident :as inc]
+             [indicator :as in]
+             [judgement :as ju]
+             [mapping :refer [store-mappings]]
+             [sighting :as sig]
+             [ttp :as ttp]]
+            [schema.core :as s]
+            [ctia
+             [properties :refer [properties]]
+             [store :refer [IActorStore
+                            ICampaignStore
+                            ICOAStore
+                            IExploitTargetStore
+                            IFeedbackStore
+                            IIdentityStore
+                            IIncidentStore
+                            IIndicatorStore
+                            IJudgementStore
+                            ISightingStore
+                            ITTPStore]]]))
 
 (defonce es-state (atom nil))
 
