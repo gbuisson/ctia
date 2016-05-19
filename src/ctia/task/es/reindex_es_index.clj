@@ -32,19 +32,21 @@
   (bulk-with-index conn index-name (bulk-create batch)))
 
 (defn reindex-store [uri index-name new-index-name batch-size]
+  (println "reindexing:" index-name "to:" new-index-name)
+
   (let [conn (connect {:uri uri})]
     (assert ((index-exists?-fn conn) conn index-name)
-            "The supplied origin index does not exists.")
+            (str "The supplied origin index does not exists: " index-name))
 
-    (println "Creating destination index...")
+    (println "Creating destination index:" new-index-name)
     (create! conn new-index-name store-mappings)
 
     (loop [offset 0]
-      (let [batch (get-batch conn index-name batch-size offset)]
+      (let [batch (get-batch conn index-name (read-string batch-size) offset)]
         (if-not (empty? batch)
-          (do (println "reingest from" offset batch-size "documents")
+          (do (println "reingest from" offset (read-string batch-size) "documents")
               (ingest-batch conn index-name batch)
-              (recur (+ offset batch-size)))
+              (recur (+ offset (read-string batch-size))))
           (println "reindex complete"))))))
 
 (defn -main [& args]
