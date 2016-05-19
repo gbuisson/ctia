@@ -50,4 +50,4 @@
           (sut/reindex-store (:uri store-spec)
                              (:indexname store-spec)
                              "ctia_reindex_test4"
-                             100))))))
+                             "100"))))))
