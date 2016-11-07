@@ -1,7 +1,10 @@
 (ns ctia.lib.es.document
   (:require
+   [clojure.tools.logging :as log]
    [ctia.lib.pagination :as pagination]
    [ctia.lib.es.query :refer [filter-map->terms-query]]
+   [clojurewerkz.elastisch.native.bulk :as native-bulk]
+   [clojurewerkz.elastisch.rest.bulk :as rest-bulk]
    [clojurewerkz.elastisch.native.document :as native-document]
    [clojurewerkz.elastisch.rest.document :as rest-document]
    [clojurewerkz.elastisch.native.response :as native-response]
@@ -16,6 +19,16 @@
   (if (native-conn? conn)
     native-document/get
     rest-document/get))
+
+(defn bulk-index-fn [conn]
+  (if (native-conn? conn)
+    native-bulk/bulk-index
+    rest-bulk/bulk-index))
+
+(defn bulk-fn [conn]
+  (if (native-conn? conn)
+    native-bulk/bulk
+    rest-bulk/bulk))
 
 (defn create-doc-fn [conn]
   (if (native-conn? conn)
@@ -64,6 +77,17 @@
     :refresh refresh?})
   doc)
 
+(defn bulk-create-doc
+  "create multiple documents on ES and return the created documents"
+  [conn docs refresh?]
+  (let [bulk-index (bulk-index-fn conn)
+        bulk (bulk-fn conn)
+        index-operations (bulk-index docs)]
+    (bulk conn
+          index-operations
+          {:refresh refresh?}))
+  docs)
+
 (defn update-doc
   "update a document on es return the updated document"
   [conn index-name mapping id doc refresh?]
@@ -106,16 +130,17 @@
    (when offset
      {:from offset})))
 
+
+(defn generate-es-params [query filter-map params]
+  (let [query-map (filter-map->terms-query filter-map query)]
+    (merge (params->pagination params)
+           {:query query-map}
+           (select-keys params [:sort]))))
+
 (defn search-docs
-  "search for documents on es"
-  [conn index-name mapping filter-map params]
-
-  (let [filters (filter-map->terms-query filter-map)
-        es-params (merge (params->pagination params)
-                         (when filter-map
-                           {:query (filter-map->terms-query filter-map)})
-                         (select-keys params [:query :sort]))
-
+  "Search for documents on es using a query string search.  Also applies a filter map, converting the values in the filter-map into must match terms."
+  [conn index-name mapping query filter-map params]
+  (let [ es-params (generate-es-params query filter-map params)
         res (->> ((search-doc-fn conn)
                   conn
                   index-name
@@ -125,7 +150,9 @@
         results (->> res
                      ((hits-from-fn conn))
                      (map :_source))]
-
+    
+    (log/debug "search-docs: " es-params )
+    
     (pagination/response (or results [])
                          (:from es-params)
                          (:size es-params)

@@ -6,7 +6,7 @@
    [ctia.flows.crud :as flows]
    [ctia.store :refer :all]
    [ctia.schemas.core :refer [NewSighting StoredSighting]]
-   [ctia.http.routes.common :refer [created paginated-ok PagingParams]]
+   [ctia.http.routes.common :refer [created paginated-ok PagingParams SightingSearchParams]]
    [ring.util.http-response :refer [ok no-content not-found unprocessable-entity]]
    [schema.core :as s]
    [schema-tools.core :as st]))
@@ -29,11 +29,12 @@
       (if (check-new-sighting sighting)
         (created
          (with-long-id
-           (flows/create-flow :realize-fn realize-sighting
-                              :store-fn #(write-store :sighting create-sighting %)
-                              :entity-type :sighting
-                              :identity identity
-                              :entity sighting)))
+           (first
+            (flows/create-flow :realize-fn realize-sighting
+                               :store-fn #(write-store :sighting create-sightings %)
+                               :entity-type :sighting
+                               :identity identity
+                               :entities [sighting]))))
         (unprocessable-entity)))
     (PUT "/:id" []
       :return StoredSighting
@@ -65,6 +66,20 @@
        (page-with-long-id
         (read-store :sighting list-sightings
                     {:external_ids (:external_id q)} q))))
+
+    (GET "/search" []
+         :return (s/maybe [StoredSighting])
+         :summary "Search for Sightings using a Lucene/ES query string"
+         :query [params SightingSearchParams]
+         :capabilities #{:read-sighting :search-sighting}
+         :header-params [api_key :- (s/maybe s/Str)]
+         (paginated-ok
+          (page-with-long-id
+           (query-string-search-store :sighting
+                                      query-string-search
+                                      (:query params)
+                                      (dissoc params :query :sort_by :sort_order :offset :limit)
+                                      (select-keys params [:sort_by :sort_order :offset :limit])))))
 
     (GET "/:id" []
       :return (s/maybe StoredSighting)

@@ -4,7 +4,7 @@
    [ctia.domain.entities :refer [realize-campaign]]
    [ctia.domain.entities.campaign :refer [with-long-id page-with-long-id]]
    [ctia.flows.crud :as flows]
-   [ctia.http.routes.common :refer [created paginated-ok PagingParams]]
+   [ctia.http.routes.common :refer [created paginated-ok PagingParams CampaignSearchParams]]
    [ctia.store :refer :all]
    [ctia.schemas.core :refer [NewCampaign StoredCampaign]]
    [ring.util.http-response :refer [no-content not-found ok]]
@@ -28,11 +28,12 @@
       :identity identity
       (created
        (with-long-id
-         (flows/create-flow :realize-fn realize-campaign
-                            :store-fn #(write-store :campaign create-campaign %)
-                            :entity-type :campaign
-                            :identity identity
-                            :entity campaign))))
+         (first
+          (flows/create-flow :realize-fn realize-campaign
+                             :store-fn #(write-store :campaign create-campaigns %)
+                             :entity-type :campaign
+                             :identity identity
+                             :entities [campaign])))))
     (PUT "/:id" []
       :return StoredCampaign
       :body [campaign NewCampaign {:description "an updated campaign"}]
@@ -60,6 +61,20 @@
        (page-with-long-id
         (read-store :campaign list-campaigns
                     {:external_ids (:external_id q)} q))))
+
+    (GET "/search" []
+         :return (s/maybe [StoredCampaign])
+         :summary "Search for a Campaign using a Lucene/ES query string"
+         :query [params CampaignSearchParams]
+         :capabilities #{:read-campaign :search-campaign}
+         :header-params [api_key :- (s/maybe s/Str)]
+         (paginated-ok
+          (page-with-long-id
+           (query-string-search-store :campaign
+                                      query-string-search
+                                      (:query params)
+                                      (dissoc params :query :sort_by :sort_order :offset :limit)
+                                      (select-keys params [:sort_by :sort_order :offset :limit])))))
 
     (GET "/:id" []
       :return (s/maybe StoredCampaign)
