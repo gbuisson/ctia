@@ -140,7 +140,7 @@
 
 (defn find-by-external-ids
   [import-data entity-type auth-identity]
-  (let [external-ids (remove nil? (map :external_id import-data))]
+  (let [external-ids (keep :external_id import-data)]
     (log/debugf "Searching %s matching these external_ids %s"
                 entity-type
                 (pr-str external-ids))
@@ -355,7 +355,7 @@
                    nil}]
                  :header-params [{Authorization :- (s/maybe s/Str) nil}]
                  :summary "POST many new entities using a single HTTP call"
-                 :identity auth-identity
+                 :auth-identity auth-identity
                  :capabilities #{:create-actor
                                  :create-attack-pattern
                                  :create-campaign
