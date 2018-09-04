@@ -1,0 +1,270 @@
+#+TITLE: Elasticsearch alias regexp test
+
+
+* Test setup
+
+#+BEGIN_SRC http
+PUT http://localhost:9200/v0.1_foo
+
+{"mappings": {"foo": {"properties": {"bar": {"type": "text", "fielddata": true}}}}}
+#+END_SRC
+
+#+RESULTS:
+: HTTP/1.1 200 OK
+: content-type: application/json; charset=UTF-8
+: content-length: 48
+: 
+: {"acknowledged":true,"shards_acknowledged":true}
+#+END_RESULTS
+
+
+#+BEGIN_SRC http
+PUT http://localhost:9200/v0.2_foo
+    
+{"mappings": {"foo": {"properties": {"bar": {"type": "keyword"}}}}}
+#+END_SRC
+
+#+RESULTS:
+: HTTP/1.1 200 OK
+: content-type: application/json; charset=UTF-8
+: content-length: 48
+: 
+: {"acknowledged":true,"shards_acknowledged":true}
+
+
+#+BEGIN_SRC http
+POST http://localhost:9200/_aliases
+     
+     {"actions": [{"add": {"index": "*_foo", "alias": "foo"}}]}
+#+END_SRC
+
+#+RESULTS:
+: HTTP/1.1 200 OK
+: content-type: application/json; charset=UTF-8
+: content-length: 21
+: 
+: {"acknowledged":true}
+
+* POST documents
+
+#+BEGIN_SRC http
+POST http://localhost:9200/v0.1_foo/foo
+
+{"bar": "a"}    
+#+END_SRC
+
+#+RESULTS:
+: HTTP/1.1 201 Created
+: Location: /v0.1_foo/foo/AWWkpAgrgwA8xGFBnGoF
+: content-type: application/json; charset=UTF-8
+: content-length: 159
+: 
+: {"_index":"v0.1_foo","_type":"foo","_id":"AWWkpAgrgwA8xGFBnGoF","_version":1,"result":"created","_shards":{"total":2,"successful":1,"failed":0},"created":true}
+
+
+#+BEGIN_SRC http
+POST http://localhost:9200/v0.1_foo/foo
+
+{"bar": "b"}
+#+END_SRC
+
+#+RESULTS:
+: HTTP/1.1 201 Created
+: Location: /v0.1_foo/foo/AWWkpA8ogwA8xGFBnGoG
+: content-type: application/json; charset=UTF-8
+: content-length: 159
+: 
+: {"_index":"v0.1_foo","_type":"foo","_id":"AWWkpA8ogwA8xGFBnGoG","_version":1,"result":"created","_shards":{"total":2,"successful":1,"failed":0},"created":true}
+
+#+BEGIN_SRC http
+POST http://localhost:9200/v0.1_foo/foo
+
+{"bar": "c"}
+#+END_SRC
+
+#+RESULTS:
+: HTTP/1.1 201 Created
+: Location: /v0.1_foo/foo/AWWkpBkCgwA8xGFBnGoH
+: content-type: application/json; charset=UTF-8
+: content-length: 159
+: 
+: {"_index":"v0.1_foo","_type":"foo","_id":"AWWkpBkCgwA8xGFBnGoH","_version":1,"result":"created","_shards":{"total":2,"successful":1,"failed":0},"created":true}
+
+#+BEGIN_SRC http
+POST http://localhost:9200/v0.2_foo/foo
+     
+{"bar": "a"}
+#+END_SRC
+
+#+RESULTS:
+: HTTP/1.1 201 Created
+: Location: /v0.2_foo/foo/AWWkpCH0gwA8xGFBnGoI
+: content-type: application/json; charset=UTF-8
+: content-length: 159
+: 
+: {"_index":"v0.2_foo","_type":"foo","_id":"AWWkpCH0gwA8xGFBnGoI","_version":1,"result":"created","_shards":{"total":2,"successful":1,"failed":0},"created":true}
+
+#+BEGIN_SRC http
+POST http://localhost:9200/v0.2_foo/foo
+
+{"bar": "b"}
+#+END_SRC
+
+#+RESULTS:
+: HTTP/1.1 201 Created
+: Location: /v0.2_foo/foo/AWWkpC0IgwA8xGFBnGoJ
+: content-type: application/json; charset=UTF-8
+: content-length: 159
+: 
+: {"_index":"v0.2_foo","_type":"foo","_id":"AWWkpC0IgwA8xGFBnGoJ","_version":1,"result":"created","_shards":{"total":2,"successful":1,"failed":0},"created":true}
+
+#+END_SRC
+#+BEGIN_SRC http
+POST http://localhost:9200/v0.2_foo/foo
+
+{"bar": "c"}
+#+END_SRC
+
+#+RESULTS:
+: HTTP/1.1 201 Created
+: Location: /v0.2_foo/foo/AWWkpDfBgwA8xGFBnGoK
+: content-type: application/json; charset=UTF-8
+: content-length: 159
+: 
+: {"_index":"v0.2_foo","_type":"foo","_id":"AWWkpDfBgwA8xGFBnGoK","_version":1,"result":"created","_shards":{"total":2,"successful":1,"failed":0},"created":true}
+
+
+
+
+
+* Test Queries
+
+#+BEGIN_SRC http
+POST http://localhost:9200/foo/_search?pretty
+     
+{"sort": [{"bar": {"order": "asc"}}]}
+     
+     #+END_SRC
+
+     #+RESULTS:
+     #+begin_example
+     HTTP/1.1 200 OK
+     content-type: application/json; charset=UTF-8
+     content-length: 1614
+
+     {
+       "took" : 6,
+       "timed_out" : false,
+       "_shards" : {
+         "total" : 10,
+         "successful" : 10,
+         "failed" : 0
+       },
+       "hits" : {
+         "total" : 6,
+         "max_score" : null,
+         "hits" : [
+           {
+             "_index" : "v0.1_foo",
+             "_type" : "foo",
+             "_id" : "AWWkpAgrgwA8xGFBnGoF",
+             "_score" : null,
+             "_source" : {
+               "bar" : "a"
+             },
+             "sort" : [
+               "a"
+             ]
+           },
+           {
+             "_index" : "v0.2_foo",
+             "_type" : "foo",
+             "_id" : "AWWkpCH0gwA8xGFBnGoI",
+             "_score" : null,
+             "_source" : {
+               "bar" : "a"
+             },
+             "sort" : [
+               "a"
+             ]
+           },
+           {
+             "_index" : "v0.2_foo",
+             "_type" : "foo",
+             "_id" : "AWWkpC0IgwA8xGFBnGoJ",
+             "_score" : null,
+             "_source" : {
+               "bar" : "b"
+             },
+             "sort" : [
+               "b"
+             ]
+           },
+           {
+             "_index" : "v0.1_foo",
+             "_type" : "foo",
+             "_id" : "AWWkpA8ogwA8xGFBnGoG",
+             "_score" : null,
+             "_source" : {
+               "bar" : "b"
+             },
+             "sort" : [
+               "b"
+             ]
+           },
+           {
+             "_index" : "v0.1_foo",
+             "_type" : "foo",
+             "_id" : "AWWkpBkCgwA8xGFBnGoH",
+             "_score" : null,
+             "_source" : {
+               "bar" : "c"
+             },
+             "sort" : [
+               "c"
+             ]
+           },
+           {
+             "_index" : "v0.2_foo",
+             "_type" : "foo",
+             "_id" : "AWWkpDfBgwA8xGFBnGoK",
+             "_score" : null,
+             "_source" : {
+               "bar" : "c"
+             },
+             "sort" : [
+               "c"
+             ]
+           }
+         ]
+       }
+     }
+     #+end_example
+
+#+END_SRC
+
+
+* Teardown 
+
+#+BEGIN_SRC http    
+DELETE http://localhost:9200/v0.1_foo
+
+       #+END_SRC
+
+       #+RESULTS:
+       : HTTP/1.1 200 OK
+       : content-type: application/json; charset=UTF-8
+       : content-length: 21
+       : 
+       : {"acknowledged":true}
+
+#+BEGIN_SRC http      
+DELETE http://localhost:9200/v0.2_foo
+        #+END_SRC
+
+#+RESULTS:
+: HTTP/1.1 200 OK
+: content-type: application/json; charset=UTF-8
+: content-length: 21
+: 
+: {"acknowledged":true}
